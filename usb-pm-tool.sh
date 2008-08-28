@@ -109,6 +109,7 @@ fi
 # Need to calculate a buffer, but jiffies is based on HZ and yuck.
 # Maybe use connected duration (read with TIME and TIME2), use a fraction of it
 # as a buffer?
+echo "Device active at $TIME jiffies and $TIME2 jiffies"
 if [ $TIME != $TIME2 ]; then
 	echo "Device still active, test inconclusive."
 	exit 1
@@ -128,6 +129,7 @@ if [ $WAKEUP == "enabled" ]; then
 		echo "Device died?"
 		exit 1
 	fi
+	echo "Device active at $TIME jiffies and $TIME2 jiffies"
 	if [ $TIME != $TIME2 ]; then
 		echo "Remote wakeup worked!"
 	fi
