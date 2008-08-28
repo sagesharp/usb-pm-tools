@@ -97,7 +97,7 @@ echo
 echo "Waiting for device activity to cease..."
 sleep 2
 TIME=$(cat "$1/power/active_duration")
-sleep 2
+sleep 0.2
 TIME2=$(cat "$1/power/active_duration")
 
 # Be paranoid at this point about files, because the device might break and the
