@@ -17,7 +17,7 @@
 # this program; if not, write to the Free Software Foundation, Inc., 
 # 51 Franklin St - Fifth Floor, Boston, MA 02110-1301 USA.
 
-# Author: Sarah Sharp <sarah.a.sharp@intel.com>
+# Author: Sarah Sharp <sarah.a.sharp@linux.intel.com>
 
 
 # argument 1 is the device under test, e.g. /sys/bus/usb/devices/3-8/
