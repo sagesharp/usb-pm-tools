@@ -142,9 +142,14 @@ fi
 # Ask user if they want to send an HTTP post report.  Tell them their IP address
 # will not be used to identify which USB devices they own.
 
-# If the device correctly auto-suspends, generate a HAL rule to turn on
+# If the device correctly auto-suspends, generate a udev rule to turn on
 # auto-suspend for that device whenever it gets added to the /dev tree.  Send
 # that via HTTP_POST too.
+
+IDV=$(cat "$1/idVendor")
+IDP=$(cat "$1/idProduct")
+echo "SUBSYSTEMS==\"usb\", ATTR{idVendor}==\"$IDV\", ATTR{idProduct}==\"$IDP\", \\"
+echo "	ATTR{power/level}=\"auto\""
 
 # Ask them to enter their email address if they wish to be contacted by Linux
 # kernel USB developers.
