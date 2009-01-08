@@ -1,24 +1,25 @@
 #!/bin/sh
 #
-# Turn a file with one USB device VID:PID per line into a udev rules file
-# that will enable auto-suspend for that USB device.  Test the device
-# first to make sure it can correctly handle an autosuspend, using
-# USB-PM tool if possible.
+# Turn a file with one USB device VID:PID per line into a udev rules
+# file that will enable auto-suspend for that USB device.  Test the
+# device first to make sure it can correctly handle an autosuspend,
+# using USB-PM tool if possible.
 #
 # Copyright (c) 2008, Intel Corporation.
 #
-# This program is free software; you can redistribute it and/or modify it
-# under the terms and conditions of the GNU General Public License,
+# This program is free software; you can redistribute it and/or modify
+# it under the terms and conditions of the GNU General Public License,
 # version 2, as published by the Free Software Foundation.
 #
 # This program is distributed in the hope it will be useful, but WITHOUT
 # ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
-# FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for
-# more details.
+# FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
+# for more details.
 #
-# You should have received a copy of the GNU General Public License along with
-# this program; if not, write to the Free Software Foundation, Inc., 
-# 51 Franklin St - Fifth Floor, Boston, MA 02110-1301 USA.
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, write to the Free Software
+# Foundation, Inc., 51 Franklin St - Fifth Floor, Boston, MA 02110-1301
+# USA.
 #
 # Author: Sarah Sharp <sarah.a.sharp@linux.intel.com>
 
