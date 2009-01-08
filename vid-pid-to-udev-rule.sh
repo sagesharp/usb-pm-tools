@@ -1,9 +1,9 @@
 #!/bin/sh
 #
-# Turn a file with one USB device VID:PID per line into udev rules that
-# will enable auto-suspend for that USB device.  Test the device first
-# to make sure it can correctly handle an autosuspend, using USB-PM tool
-# if possible.
+# Turn a file with one USB device VID:PID per line into a udev rules file
+# that will enable auto-suspend for that USB device.  Test the device
+# first to make sure it can correctly handle an autosuspend, using
+# USB-PM tool if possible.
 #
 # Copyright (c) 2008, Intel Corporation.
 #
