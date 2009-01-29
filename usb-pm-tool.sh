@@ -132,6 +132,8 @@ if [ $WAKEUP == "enabled" ]; then
 	echo "Device active at $TIME jiffies and $TIME2 jiffies"
 	if [ $TIME != $TIME2 ]; then
 		echo "Remote wakeup worked!"
+		# FIXME: not necessarily, since a userspace program could have
+		# woken this device up.
 	fi
 fi
 
