@@ -152,7 +152,7 @@ echo "Your device auto-suspended correctly!"
 
 # Test remote wakeup?  Or just set level to on?
 WAKEUP=`cat $SYSFS_DIR/power/wakeup`
-if [ $WAKEUP == "enabled" ]; then
+if [ "$WAKEUP" = "enabled" ]; then
 	echo "Remote wakeup is enabled."
 	TIME=`cat "$SYSFS_DIR/power/active_duration"`
 	echo "Try to cause your device to wakeup, e.g. wiggle your mouse"
