@@ -50,21 +50,14 @@ VID=`echo $TEST_DEV | sed -r -e "s/.*([[:xdigit:]]{4}):([[:xdigit:]]{4}).*/\1/"`
 PID=`echo $TEST_DEV | sed -r -e "s/.*([[:xdigit:]]{4}):([[:xdigit:]]{4}).*/\2/"`
 
 # Finally we map the VID:PID to the sysfs file that represents that device
-# Something like
-# cd /sys/bus/usb/devices
-# find -L -maxdepth 2 -name idVendor | xargs grep -s -l $VID | xargs dirname | xargs find -maxdepth 2 [path] -name idProduct | xargs grep -s -l $PID | xargs dirname | head -n 1
-# argument 1 is the device under test, e.g. /sys/bus/usb/devices/3-8/
-if [ $# -ne 1 -o ! -d "$1" -o ! -e "$1"/devnum ]; then
-	echo 'Usage `usb-suspend-test dev` where dev is e.g. /sys/bus/usb/devices/3-8'
-	exit -1
-fi
-DEVNUM=`cat "$1"/devnum`
-BUSNUM=`cat "$1"/busnum`
-lsusb -s $BUSNUM:$DEVNUM
+# Only take the first VID:PID match
+SYSFS_DIR=`find -L /sys/bus/usb/devices -maxdepth 1 -type d -exec grep -s -q $VID {}/idVendor \; -exec grep -s -q $PID {}/idProduct \; -print | head -n 1`
+DEVNUM=`cat "$SYSFS_DIR"/devnum`
+BUSNUM=`cat "$SYSFS_DIR"/busnum`
 
 # Does the user have CONFIG_USB_PM enabled?  I.e. is the power directory and
 # level file there?  Suggest they also have CONFIG_USB_DEBUG turned on.
-if [ ! -d "$1"/power ]; then
+if [ ! -d "$SYSFS_DIR"/power ]; then
 	echo 'ERROR: CONFIG_USB_PM must be enabled in your kernel'
 	exit -1
 fi
@@ -86,7 +79,7 @@ fi
 # Do all the interface drivers support autosuspend?
 # If not, there's no point in continuing the test.
 SUPPORTED=1
-for f in `find "$1/" -name '[0-9]*-[0-9]*:*'`;
+for f in `find "$SYSFS_DIR/" -name '[0-9]*-[0-9]*:*'`;
 do
 	if [ ! -e "$f/supports_autosuspend" ]; then
 		break
@@ -123,15 +116,15 @@ WAIT=`cat "$1/power/autosuspend"`
 # Set level file to auto and monitor the activity using active_duration.
 echo "Enabling auto-suspend"
 # Don't want to wait too long...
-echo 1 > "$1/power/autosuspend"
+echo 1 > "$SYSFS_DIR/power/autosuspend"
 
-echo "auto" > "$1/power/level"
+echo "auto" > "$SYSFS_DIR/power/level"
 echo
 echo "Waiting for device activity to cease..."
 sleep 2
-TIME=$(cat "$1/power/active_duration")
+TIME=$(cat "$SYSFS_DIR/power/active_duration")
 sleep 0.2
-TIME2=$(cat "$1/power/active_duration")
+TIME2=$(cat "$SYSFS_DIR/power/active_duration")
 
 # Be paranoid at this point about files, because the device might break and the
 # files might go away.
@@ -150,14 +143,14 @@ fi
 echo "Your device auto-suspended correctly!"
 
 # Test remote wakeup?  Or just set level to on?
-WAKEUP=$(cat "$1/power/wakeup")
+WAKEUP=`cat $SYSFS_DIR/power/wakeup`
 if [ $WAKEUP == "enabled" ]; then
 	echo "Remote wakeup is enabled."
-	TIME=$(cat "$1/power/active_duration")
+	TIME=`cat "$SYSFS_DIR/power/active_duration"`
 	echo "Try to cause your device to wakeup, e.g. wiggle your mouse"
 	echo -n "or type on your keyboard.  Type enter when done (30 second timeout): "
 	read -n 1 -t 30
-	TIME2=$(cat "$1/power/active_duration")
+	TIME2=`cat "$SYSFS_DIR/power/active_duration"`
 	if [ ! $? ]; then
 		echo "Device died?"
 		exit 1
