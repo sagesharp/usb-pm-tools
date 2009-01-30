@@ -102,7 +102,7 @@ do
 
 	if [ `cat "$f/supports_autosuspend"` = 0 ]; then
 		# unclaimed interfaces will have supports_autosuspend set to 1
-		echo "WARN: $DRIVER driver for interface `cat $f/bInterfaceNumber` does not support autosuspend."
+		echo "$DRIVER driver for interface `cat $f/bInterfaceNumber` does not support autosuspend."
 		echo "Autosuspend can only be tested when all interface drivers support autosuspend."
 		SUPPORTED=0
 	else
