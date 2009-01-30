@@ -44,7 +44,7 @@ if [ "$devnum" -gt "$MAX_DEVNUM" ]; then
 	echo "Device $devnum does not exist"
 	exit 0
 fi
-# Now to map that number to a device's VID/PID
+# Now to map the user's selection to a device's VID/PID
 TEST_DEV=`head -n $devnum $DEVS_FILE | tail -n 1`
 VID=`echo $TEST_DEV | sed -r -e "s/.*([[:xdigit:]]{4}):([[:xdigit:]]{4}).*/\1/"`
 PID=`echo $TEST_DEV | sed -r -e "s/.*([[:xdigit:]]{4}):([[:xdigit:]]{4}).*/\2/"`
@@ -182,10 +182,8 @@ fi
 # auto-suspend for that device whenever it gets added to the /dev tree.  Send
 # that via HTTP_POST too.
 
-IDV=$(cat "$1/idVendor")
-IDP=$(cat "$1/idProduct")
 echo "Suggested udev rule:"
-echo "SUBSYSTEMS==\"usb\", ATTR{idVendor}==\"$IDV\", ATTR{idProduct}==\"$IDP\", \\"
+echo "SUBSYSTEMS==\"usb\", ATTR{idVendor}==\"$VID\", ATTR{idProduct}==\"$PID\", \\"
 echo "	ATTR{power/level}=\"auto\""
 # TODO ask user if they want to add this rule to their udev rules.
 
