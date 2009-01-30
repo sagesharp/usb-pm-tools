@@ -62,13 +62,21 @@ if [ ! -d "$SYSFS_DIR"/power ]; then
 	exit -1
 fi
 
-echo
 echo 'This test will enable a low power mode on your USB device.
 It may cause broken devices to disconnect or stop responding.
-Usually a reset or unplug-replug cycle will clear this error condition.
-Please be careful when testing USB hard drives.'
+Usually a reset or unplug-replug cycle will clear this error condition.'
 echo
-echo -n "Do you wish to test this device ($BUSNUM:$DEVNUM)? (y/n): "
+echo $TEST_DEV
+echo "The following drivers are using this device:"
+DRIVERS=`find "$SYSFS_DIR/" -mindepth 2 -maxdepth 3 -name driver -execdir readlink {} \; | xargs -n1 --no-run-if-empty basename`
+echo $DRIVERS
+echo
+if echo $DRIVERS | grep -q -e ".*usb-storage.*" -e ".*ub.*" - ; then
+	echo "WARNING: This device contains a USB flash drive or hard disk."
+	echo "You may want to backup your files before proceeding."
+	echo
+fi
+echo -n "Do you wish to test this device? (y/n): "
 read -n 4 go
 echo ""
 if [ "$go" != 'y' -a  "$go" != 'Y' -a  "$go" != 'yes'  -a  "$go" != 'Yes' ]; then
