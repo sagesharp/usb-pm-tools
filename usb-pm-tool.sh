@@ -119,7 +119,17 @@ if [ $SUPPORTED == 0 ]; then
 fi
 
 # For cleanup later
-WAIT=`cat "$1/power/autosuspend"`
+# TODO: reset the files to the old values after testing the device.
+OLD_WAIT=`cat "$SYSFS_DIR/power/autosuspend"`
+OLD_LEVEL=`cat "$SYSFS_DIR/power/level"`
+
+# TODO: set the parent hub or roothub's level to on
+# take activity time stamps for both device and parent hub,
+# after setting the device level to off and waiting 2 seconds.
+# sleep a short amount of time and sample again.
+# Compare the difference between the parent (who we know is on)
+# and the device (which should be autosuspended by now).
+# If the delta activities are the same, then we know the device didn't autosuspend.
 
 # Set level file to auto and monitor the activity using active_duration.
 echo "Enabling auto-suspend"
