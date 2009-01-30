@@ -19,7 +19,40 @@
 
 # Author: Sarah Sharp <sarah.a.sharp@linux.intel.com>
 
+# Todo - present the user with a list of their USB devices they can test.
+# Exclude root hubs from that list (I think they are 0000:000x on older
+# systems?)
+# Then let them pick the device from the list.
+# To find out the non-root hubs in the system:
+NUM_DEVS=`sudo lsusb | grep -v -e ".*ID 1d6b:000.*" -e ".*ID 0000:000.*" | wc -l`
+# Find out how many devices we have
 
+echo ""
+echo "USB Power Management Tool v 0.1"
+echo "Copyright Sarah Sharp 2008"
+echo ""
+
+DEVS_FILE=/tmp/usb-pm-devices.txt
+sudo lsusb | grep -v -e ".*ID 1d6b:000.*" -e ".*ID 0000:000.*" > $DEVS_FILE
+cat $DEVS_FILE | nl
+echo -n "Which USB devices would you like to test: "
+# Can't have more than 255 devices plugged in anyway...
+read -n 3 devnum
+echo ""
+MAX_DEVNUM=`cat $DEVS_FILE | wc -l`
+if [ "$devnum" -gt "$MAX_DEVNUM" ]; then
+	echo "Device $devnum does not exist"
+	exit 0
+fi
+# Now to map that number to a device's VID/PID
+TEST_DEV=`head -n $devnum $DEVS_FILE | tail -n 1`
+VID=`echo $TEST_DEV | sed -r -e "s/.*([[:xdigit:]]{4}):([[:xdigit:]]{4}).*/\1/"`
+PID=`echo $TEST_DEV | sed -r -e "s/.*([[:xdigit:]]{4}):([[:xdigit:]]{4}).*/\2/"`
+
+# Finally we map the VID:PID to the sysfs file that represents that device
+# Something like
+# cd /sys/bus/usb/devices
+# find -L -maxdepth 2 -name idVendor | xargs grep -s -l $VID | xargs dirname | xargs find -maxdepth 2 [path] -name idProduct | xargs grep -s -l $PID | xargs dirname | head -n 1
 # argument 1 is the device under test, e.g. /sys/bus/usb/devices/3-8/
 if [ $# -ne 1 -o ! -d "$1" -o ! -e "$1"/devnum ]; then
 	echo 'Usage `usb-suspend-test dev` where dev is e.g. /sys/bus/usb/devices/3-8'
