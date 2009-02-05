@@ -53,6 +53,27 @@ fi
 
 DEVS_FILE=/tmp/usb-pm-devices.txt
 sudo lsusb | grep -v -e ".*ID 1d6b:000.*" -e ".*ID 0000:000.*" > $DEVS_FILE
+
+# Do some processing on the file to filter USB devices.
+#
+# Sort into devices that do support autosuspend versus those that don't.
+# Simply display those that don't support autosuspend, and offer to test
+# any that do support autosuspend.  If the system doesn't have the
+# supports_autosuspend files, offer to test them all.  E.g.
+#
+# These devices have drivers that don't support auto-suspend yet:
+#
+# vid:pid device foo
+# vid:pid device bar
+#
+# Which USB device do you want to test?
+#
+#        Auto-suspend     device
+#        status
+#     --------------------------------------------------------------------
+#     1  enabled          vid:pid device baz
+#     2  disabled         vid:pid device baz
+
 cat $DEVS_FILE | nl
 echo -n "Which USB devices would you like to test: "
 # Can't have more than 255 devices plugged in anyway...
