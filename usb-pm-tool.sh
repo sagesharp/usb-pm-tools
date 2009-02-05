@@ -35,11 +35,18 @@ echo ""
 if [ $# -gt 0 ]; then
 	echo 'Usage `./usb-pm-tool.sh`'
 	echo ""
-	echo "This tool will test whether you can safely place a USB device"
-	echo "into a low power state (suspend).  If the device correctly suspends"
-	echo "the tool will generate a udev rule to allow the kernel to"
-	echo "automatically suspend the USB device when it is inactive."
-	echo 'This is called "enabling auto-suspend".'
+	echo "    This tool will test whether you can safely place a USB device"
+	echo "    into a low power state (suspend).  Suspending inactive USB"
+	echo "    devices can reduce power consumption and increase battery life."
+	echo ""
+	echo "    If the device correctly suspends, the tool will generate"
+	echo "    a udev rule to allow the kernel to automatically suspend"
+	echo "    the USB device when it is inactive.  The udev rule will"
+	echo "    trigger whenever the device is plugged in."
+	echo ""
+	echo "    Currently, not all USB drivers support automatic suspension"
+	echo "    (auto-suspend) of inactive devices.  This test is only useful"
+	echo "    for USB devices that use drivers that support auto-suspend."
 	echo ""
 	exit 0
 fi
