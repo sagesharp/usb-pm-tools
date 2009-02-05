@@ -19,13 +19,6 @@
 
 # Author: Sarah Sharp <sarah.a.sharp@linux.intel.com>
 
-# Todo - present the user with a list of their USB devices they can test.
-# Exclude root hubs from that list (I think they are 0000:000x on older
-# systems?)
-# Then let them pick the device from the list.
-# To find out the non-root hubs in the system:
-NUM_DEVS=`sudo lsusb | grep -v -e ".*ID 1d6b:000.*" -e ".*ID 0000:000.*" | wc -l`
-# Find out how many devices we have
 
 echo ""
 echo "USB Power Management Tool v 0.1"
