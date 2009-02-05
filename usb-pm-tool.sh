@@ -32,6 +32,18 @@ echo "USB Power Management Tool v 0.1"
 echo "Copyright Sarah Sharp 2008"
 echo ""
 
+if [ $# -gt 0 ]; then
+	echo 'Usage `./usb-pm-tool.sh`'
+	echo ""
+	echo "This tool will test whether you can safely place a USB device"
+	echo "into a low power state (suspend).  If the device correctly suspends"
+	echo "the tool will generate a udev rule to allow the kernel to"
+	echo "automatically suspend the USB device when it is inactive."
+	echo 'This is called "enabling auto-suspend".'
+	echo ""
+	exit 0
+fi
+
 DEVS_FILE=/tmp/usb-pm-devices.txt
 sudo lsusb | grep -v -e ".*ID 1d6b:000.*" -e ".*ID 0000:000.*" > $DEVS_FILE
 cat $DEVS_FILE | nl
