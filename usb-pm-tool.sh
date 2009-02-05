@@ -27,6 +27,7 @@ echo ""
 
 if [ $# -gt 0 ]; then
 	echo 'Usage `./usb-pm-tool.sh`'
+	echo "This script must be run with root privileges."
 	echo ""
 	echo "    This tool will test whether you can safely place a USB device"
 	echo "    into a low power state (suspend).  Suspending inactive USB"
@@ -44,6 +45,9 @@ if [ $# -gt 0 ]; then
 	exit 0
 fi
 
+# FIXME: check to make sure the script is running as root.
+
+# Find all USB devices on the system
 DEVS_FILE=/tmp/usb-pm-devices.txt
 sudo lsusb | grep -v -e ".*ID 1d6b:000.*" -e ".*ID 0000:000.*" > $DEVS_FILE
 
