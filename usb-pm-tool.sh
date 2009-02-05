@@ -102,13 +102,17 @@ if [ ! -d "$SYSFS_DIR"/power ]; then
 	exit -1
 fi
 
+# Find the USB drivers that have claimed this device
+DRIVERS=`find "$SYSFS_DIR/" -mindepth 2 -maxdepth 3 -name driver -execdir readlink {} \; | xargs -n1 --no-run-if-empty basename`
+
 echo 'This test will enable a low power mode on your USB device.
 It may cause broken devices to disconnect or stop responding.
 Usually a reset or unplug-replug cycle will clear this error condition.'
 echo
+
+# For testing purposes only, remove driver echoing for final script
 echo $TEST_DEV
 echo "The following drivers are using this device:"
-DRIVERS=`find "$SYSFS_DIR/" -mindepth 2 -maxdepth 3 -name driver -execdir readlink {} \; | xargs -n1 --no-run-if-empty basename`
 echo $DRIVERS
 echo
 if echo $DRIVERS | grep -q -e ".*usb-storage.*" -e ".*ub.*" - ; then
