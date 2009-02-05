@@ -115,17 +115,19 @@ echo $TEST_DEV
 echo "The following drivers are using this device:"
 echo $DRIVERS
 echo
+
+# Warn users if they're testing USB mass storage devices.
 if echo $DRIVERS | grep -q -e ".*usb-storage.*" -e ".*ub.*" - ; then
 	echo "WARNING: This device contains a USB flash drive or hard disk."
 	echo "You may want to backup your files before proceeding."
 	echo
-fi
-echo -n "Do you wish to test this device? (y/n): "
-read -n 4 go
-echo ""
-if [ "$go" != 'y' -a  "$go" != 'Y' -a  "$go" != 'yes'  -a  "$go" != 'Yes' ]; then
-	echo "Please try with a different device.  Thanks!"
-	exit 0
+	echo -n "Do you wish to test this device? (y/n): "
+	read -n 4 go
+	echo ""
+	if [ "$go" != 'y' -a  "$go" != 'Y' -a  "$go" != 'yes'  -a  "$go" != 'Yes' -a "$go" != 'YES' ]; then
+		echo "Please try with a different device.  Thanks!"
+		exit 0
+	fi
 fi
 
 # Do all the interface drivers support autosuspend?
