@@ -287,11 +287,13 @@ echo "Device successfully resumed.  Does this device still work? (y/n):"
 read -n 4 working
 echo ""
 if [ "$working" != 'y' -a  "$working" != 'Y' -a  "$working" != 'yes'  -a  "$working" != 'Yes' -a "$working" != 'YES' ]; then
+	SUCCESS=0
 	echo "What was wrong with the device: "
 	read -n 500 notes
 	echo ""
 # FIXME make a bug report - might be something to do with the driver?
-	exit 0
+else
+	SUCCESS=1
 fi
 
 # Clean up the root hub's files we messed with
@@ -310,9 +312,11 @@ OLD_LEVEL=`cat "$SYSFS_DIR/power/level"`
 # auto-suspend for that device whenever it gets added to the /dev tree.  Send
 # that via HTTP_POST too.
 
-echo "Suggested udev rule:"
-echo "SUBSYSTEMS==\"usb\", ATTR{idVendor}==\"$VID\", ATTR{idProduct}==\"$PID\", \\"
-echo "	ATTR{power/level}=\"auto\""
+if [ $SUCCESS -eq 1 ]; then
+	echo "Suggested udev rule:"
+	echo "SUBSYSTEMS==\"usb\", ATTR{idVendor}==\"$VID\", ATTR{idProduct}==\"$PID\", \\"
+	echo "	ATTR{power/level}=\"auto\""
+fi
 # TODO ask user if they want to add this rule to their udev rules.
 
 # Ask them to enter their email address if they wish to be contacted by Linux
