@@ -38,6 +38,12 @@ if [ $# -gt 0 ]; then
 	echo "    the USB device when it is inactive.  The udev rule will"
 	echo "    trigger whenever the device is plugged in."
 	echo ""
+	echo "    You will need to have programs installed that use your"
+	echo "    USB device, so that wakeup out of suspend can be tested."
+	echo "    For example, you might use the 'cheese' program to test"
+	echo "    a USB video camera, or the thinkfinger program to test"
+	echo "    a USB fingerprint reader."
+	echo ""
 	echo "    Currently, not all USB drivers support automatic suspension"
 	echo "    (auto-suspend) of inactive devices.  This test is only useful"
 	echo "    for USB devices that use drivers that support auto-suspend."
@@ -165,6 +171,9 @@ fi
 # TODO: reset the files to the old values after testing the device.
 OLD_WAIT=`cat "$SYSFS_DIR/power/autosuspend"`
 OLD_LEVEL=`cat "$SYSFS_DIR/power/level"`
+# Find the roothub that is the ancestor of the device in the tree.
+PARENT="/sys/bus/usb/devices/usb$BUSNUM"
+OLD_PARENT_LEVEL=`cat "$PARENT/power/level"`
 
 # TODO: set the parent hub or roothub's level to on
 # take activity time stamps for both device and parent hub,
@@ -178,55 +187,121 @@ OLD_LEVEL=`cat "$SYSFS_DIR/power/level"`
 echo "Enabling auto-suspend"
 # Don't want to wait too long...
 echo 1 > "$SYSFS_DIR/power/autosuspend"
-
+# Force the roothub to stay active to provide a time delta to compare against.
+echo "on" > "$PARENT/power/level"
+# Turn on auto-suspend for the device under test.
 echo "auto" > "$SYSFS_DIR/power/level"
 echo
 echo "Waiting for device activity to cease..."
-sleep 2
-TIME=$(cat "$SYSFS_DIR/power/active_duration")
-sleep 0.2
-TIME2=$(cat "$SYSFS_DIR/power/active_duration")
+echo
 
+sleep 2
+PARENT_TIME=$(cat "$PARENT/power/active_duration")
+TIME=$(cat "$SYSFS_DIR/power/active_duration")
 # Be paranoid at this point about files, because the device might break and the
-# files might go away.
+# files might go away.  FIXME this should probably be a function...
 if [ ! $? ]; then
-	echo "Device died?"
+	echo "Device died?  Not enabling auto-suspend udev rule."
+	# FIXME - offer to send a message that the device died?
 	exit 1
 fi
-# Need to calculate a buffer, but jiffies is based on HZ and yuck.
-# Maybe use connected duration (read with TIME and TIME2), use a fraction of it
-# as a buffer?
-echo "Device active at $TIME jiffies and $TIME2 jiffies"
-if [ $TIME != $TIME2 ]; then
+
+sleep 0.2
+PARENT_TIME2=$(cat "$PARENT/power/active_duration")
+TIME2=$(cat "$SYSFS_DIR/power/active_duration")
+if [ ! $? ]; then
+	echo "Device died?  Not enabling auto-suspend udev rule."
+	# FIXME - offer to send a message that the device died?
+	exit 1
+fi
+
+# Was the device's active time delta less than
+# it's parent's active time delta?  If so, the device suspended successfully.
+# The delta times can be off because of delay between the cat commands.
+# Put in a slight buffer
+if [ $(($TIME2 - $TIME)) -ge $((($PARENT_TIME2 - $PARENT_TIME) * 7 / 8)) ]; then
 	echo "Device still active, test inconclusive."
 	exit 1
 fi
-echo "Your device auto-suspended correctly!"
+
+
+# Now test to see if the device correctly wakes up.
+
+echo "Your device suspended correctly.  Now we need to make sure it wakes up."
+echo "You should initiate device activity by using a program for that device."
+# FIXME: have specific examples based on the driver for the USB device.
+echo "For example, you might use the 'cheese' program to test a USB video camera"
+echo "or the thinkfinger program to test a USB fingerprint reader."
+echo "If you can't find a program to use, just hit enter at the next prompt."
+echo
 
 # Test remote wakeup?  Or just set level to on?
 WAKEUP=`cat $SYSFS_DIR/power/wakeup`
 if [ "$WAKEUP" = "enabled" ]; then
-	echo "Remote wakeup is enabled."
-	TIME=`cat "$SYSFS_DIR/power/active_duration"`
-	echo "Try to cause your device to wakeup, e.g. wiggle your mouse"
-	echo -n "or type on your keyboard.  Type enter when done (30 second timeout): "
-	read -n 1 -t 30
-	TIME2=`cat "$SYSFS_DIR/power/active_duration"`
-	if [ ! $? ]; then
-		echo "Device died?"
-		exit 1
-	fi
-	echo "Device active at $TIME jiffies and $TIME2 jiffies"
-	if [ $TIME != $TIME2 ]; then
-		echo "Remote wakeup worked!"
-		# FIXME: not necessarily, since a userspace program could have
-		# woken this device up.
-	fi
+	echo "Remote wakeup is enabled for this device."
+	echo "The device may be able to request wakeup out of the suspend state."
+	echo "For example, a USB mouse may wakeup if you wiggle it or click a button,"
+	echo "or a USB keyboard may wake up if you hit the CTRL key."
+	echo
+fi
+
+echo "Type enter once you are actively using the device:"
+# 5 minute timeout.  FIXME: can they skip this step if they don't plan on
+# using the device?  I would rather they not, but if the USB device isn't
+# supported, they should at least have good power management with it.
+# Maybe offer to skip this step if there isn't a driver loaded for the device?
+# Oh, wait, what about libusb userspace programs?
+read -n 1 -t 300
+echo
+
+# Figure out if the device is active now
+# FIXME: this is copy-paste code, make a function!
+PARENT_TIME=$(cat "$PARENT/power/active_duration")
+TIME=$(cat "$SYSFS_DIR/power/active_duration")
+# Be paranoid at this point about files, because the device might break and the
+# files might go away.  FIXME this should probably be a function...
+if [ ! $? ]; then
+	echo "Device died?  Not enabling auto-suspend udev rule."
+	# FIXME - offer to send a message that the device died?
+	exit 1
+fi
+# XXX: Not sure about this delta time value...
+sleep 0.2
+PARENT_TIME2=$(cat "$PARENT/power/active_duration")
+TIME2=$(cat "$SYSFS_DIR/power/active_duration")
+if [ ! $? ]; then
+	echo "Device died?  Not enabling auto-suspend udev rule."
+	# FIXME - offer to send a message that the device died?
+	exit 1
+fi
+
+if [ $(($TIME2 - $TIME)) -le $((($PARENT_TIME2 - $PARENT_TIME) * 7 / 8)) ]; then
+	echo "Device still suspended, test inconclusive."
+	exit 1
 fi
 
 
 # Ask user: does this device still work?  E.g. mouse moves on screen, it prints,
 # etc.  Record response.
+echo "Device successfully resumed.  Does this device still work? (y/n):"
+read -n 4 working
+echo ""
+if [ "$working" != 'y' -a  "$working" != 'Y' -a  "$working" != 'yes'  -a  "$working" != 'Yes' -a "$working" != 'YES' ]; then
+	echo "What was wrong with the device: "
+	read -n 500 notes
+	echo ""
+# FIXME make a bug report - might be something to do with the driver?
+	exit 0
+fi
+
+# Clean up the root hub's files we messed with
+echo $OLD_PARENT_LEVEL > "$PARENT/power/level"
+
+# If the device didn't suspend properly, clean up the device files too.
+# FIXME: do this later, clean them up always for now.
+OLD_WAIT=`cat "$SYSFS_DIR/power/autosuspend"`
+OLD_LEVEL=`cat "$SYSFS_DIR/power/level"`
+# Find the roothub that is the ancestor of the device in the tree.
 
 # Ask user if they want to send an HTTP post report.  Tell them their IP address
 # will not be used to identify which USB devices they own.
