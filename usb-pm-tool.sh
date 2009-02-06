@@ -283,9 +283,14 @@ echo ""
 if [ "$working" != 'y' -a  "$working" != 'Y' -a  "$working" != 'yes'  -a  "$working" != 'Yes' -a "$working" != 'YES' ]; then
 	SUCCESS=0
 	echo "What was wrong with the device: "
-	read -n 500 notes
+	read -n 500 -t 300 notes
 	echo ""
-# FIXME make a bug report - might be something to do with the driver?
+	# FIXME make a bug report - might be something to do with the driver?
+	# If the device didn't suspend properly, clean up the device pm files
+	# and make it so the device will always be on.
+	echo "Disabling auto-suspend for this device."
+	echo $OLD_WAIT > "$SYSFS_DIR/power/autosuspend"
+	echo "on" > "$SYSFS_DIR/power/level"
 else
 	SUCCESS=1
 fi
@@ -293,11 +298,6 @@ fi
 # Clean up the root hub's files we messed with
 echo $OLD_PARENT_LEVEL > "$PARENT/power/level"
 
-# If the device didn't suspend properly, clean up the device files too.
-# FIXME: do this later, clean them up always for now.
-OLD_WAIT=`cat "$SYSFS_DIR/power/autosuspend"`
-OLD_LEVEL=`cat "$SYSFS_DIR/power/level"`
-# Find the roothub that is the ancestor of the device in the tree.
 
 # Ask user if they want to send an HTTP post report.  Tell them their IP address
 # will not be used to identify which USB devices they own.
