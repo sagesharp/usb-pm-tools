@@ -22,7 +22,8 @@
 
 echo ""
 echo "USB Power Management Tool v 0.1"
-echo "Copyright Sarah Sharp 2008"
+echo "Copyright (c) 2008 Intel Corporation"
+echo "Author Sarah Sharp <sarah.a.sharp@linux.intel.com>"
 echo ""
 
 if [ $# -gt 0 ]; then
