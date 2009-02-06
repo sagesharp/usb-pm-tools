@@ -203,6 +203,8 @@ TIME=$(cat "$SYSFS_DIR/power/active_duration")
 # files might go away.  FIXME this should probably be a function...
 if [ ! $? ]; then
 	echo "Device died?  Not enabling auto-suspend udev rule."
+	# Clean up
+	echo $OLD_PARENT_LEVEL > "$PARENT/power/level"
 	# FIXME - offer to send a message that the device died?
 	exit 1
 fi
@@ -212,6 +214,8 @@ PARENT_TIME2=$(cat "$PARENT/power/active_duration")
 TIME2=$(cat "$SYSFS_DIR/power/active_duration")
 if [ ! $? ]; then
 	echo "Device died?  Not enabling auto-suspend udev rule."
+	# Clean up
+	echo $OLD_PARENT_LEVEL > "$PARENT/power/level"
 	# FIXME - offer to send a message that the device died?
 	exit 1
 fi
@@ -222,6 +226,10 @@ fi
 # Put in a slight buffer
 if [ $(($TIME2 - $TIME)) -ge $((($PARENT_TIME2 - $PARENT_TIME) * 7 / 8)) ]; then
 	echo "Device still active, test inconclusive."
+	# Clean up
+	echo $OLD_WAIT > "$SYSFS_DIR/power/autosuspend"
+	echo $OLD_LEVEL > "$SYSFS_DIR/power/level"
+	echo $OLD_PARENT_LEVEL > "$PARENT/power/level"
 	exit 1
 fi
 
@@ -256,6 +264,8 @@ TIME=$(cat "$SYSFS_DIR/power/active_duration")
 # files might go away.  FIXME this should probably be a function...
 if [ ! $? ]; then
 	echo "Device died?  Not enabling auto-suspend udev rule."
+	# Clean up
+	echo $OLD_PARENT_LEVEL > "$PARENT/power/level"
 	# FIXME - offer to send a message that the device died?
 	exit 1
 fi
@@ -265,12 +275,18 @@ PARENT_TIME2=$(cat "$PARENT/power/active_duration")
 TIME2=$(cat "$SYSFS_DIR/power/active_duration")
 if [ ! $? ]; then
 	echo "Device died?  Not enabling auto-suspend udev rule."
+	# Clean up
+	echo $OLD_PARENT_LEVEL > "$PARENT/power/level"
 	# FIXME - offer to send a message that the device died?
 	exit 1
 fi
 
 if [ $(($TIME2 - $TIME)) -le $((($PARENT_TIME2 - $PARENT_TIME) * 7 / 8)) ]; then
 	echo "Device still suspended, test inconclusive."
+	# Clean up
+	echo $OLD_WAIT > "$SYSFS_DIR/power/autosuspend"
+	echo $OLD_LEVEL > "$SYSFS_DIR/power/level"
+	echo $OLD_PARENT_LEVEL > "$PARENT/power/level"
 	exit 1
 fi
 
