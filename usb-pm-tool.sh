@@ -54,6 +54,9 @@ if [ $# -gt 0 ]; then
 	echo ""
 
 	exit 0
+else
+	echo 'Type `./usb-pm-tool.sh --help` for more info'
+	echo
 fi
 
 # FIXME: check to make sure the script is running as root.
@@ -83,11 +86,15 @@ sudo lsusb | grep -v -e ".*ID 1d6b:000.*" -e ".*ID 0000:000.*" > $DEVS_FILE
 #     2  disabled         vid:pid device baz
 
 cat $DEVS_FILE | nl
-echo -n "Which USB devices would you like to test: "
+echo
+echo -n "Which USB device would you like to test (0 cancels test): "
 # Can't have more than 255 devices plugged in anyway...
 read -n 3 devnum
 echo ""
 MAX_DEVNUM=`cat $DEVS_FILE | wc -l`
+if [ "$devnum" -eq "0" ]; then
+	exit 0
+fi
 if [ "$devnum" -gt "$MAX_DEVNUM" ]; then
 	echo "Device $devnum does not exist"
 	exit 0
