@@ -48,6 +48,11 @@ if [ $# -gt 0 ]; then
 	echo "    (auto-suspend) of inactive devices.  This test is only useful"
 	echo "    for USB devices that use drivers that support auto-suspend."
 	echo ""
+	echo "    WARNING: This test may cause broken devices to disconnect or"
+	echo "    stop responding.  Usually a reset or unplug-replug cycle will"
+	echo "    clear this error condition."
+	echo ""
+
 	exit 0
 fi
 
@@ -107,17 +112,6 @@ fi
 
 # Find the USB drivers that have claimed this device
 DRIVERS=`find "$SYSFS_DIR/" -mindepth 2 -maxdepth 3 -name driver -execdir readlink {} \; | xargs -n1 --no-run-if-empty basename`
-
-echo 'This test will enable a low power mode on your USB device.
-It may cause broken devices to disconnect or stop responding.
-Usually a reset or unplug-replug cycle will clear this error condition.'
-echo
-
-# For testing purposes only, remove driver echoing for final script
-echo $TEST_DEV
-echo "The following drivers are using this device:"
-echo $DRIVERS
-echo
 
 # Warn users if they're testing USB mass storage devices.
 if echo $DRIVERS | grep -q -e ".*usb-storage.*" -e ".*ub.*" - ; then
@@ -184,14 +178,13 @@ OLD_PARENT_LEVEL=`cat "$PARENT/power/level"`
 # If the delta activities are the same, then we know the device didn't autosuspend.
 
 # Set level file to auto and monitor the activity using active_duration.
-echo "Enabling auto-suspend"
+echo -n "Enabling auto-suspend.  "
 # Don't want to wait too long...
 echo 1 > "$SYSFS_DIR/power/autosuspend"
 # Force the roothub to stay active to provide a time delta to compare against.
 echo "on" > "$PARENT/power/level"
 # Turn on auto-suspend for the device under test.
 echo "auto" > "$SYSFS_DIR/power/level"
-echo
 echo "Waiting for device activity to cease..."
 echo
 
@@ -228,24 +221,17 @@ fi
 # Now test to see if the device correctly wakes up.
 
 echo "Your device suspended correctly.  Now we need to make sure it wakes up."
+echo
 echo "You should initiate device activity by using a program for that device."
 # FIXME: have specific examples based on the driver for the USB device.
-echo "For example, you might use the 'cheese' program to test a USB video camera"
+echo "For example, you might use the cheese program to test a USB video camera,"
 echo "or the thinkfinger program to test a USB fingerprint reader."
-echo "If you can't find a program to use, just hit enter at the next prompt."
+# Glossing over remote wakeup for now.
+echo "If you have a USB mouse or keyboard, you can hit a button to wakeup the device."
 echo
 
-# Test remote wakeup?  Or just set level to on?
-WAKEUP=`cat $SYSFS_DIR/power/wakeup`
-if [ "$WAKEUP" = "enabled" ]; then
-	echo "Remote wakeup is enabled for this device."
-	echo "The device may be able to request wakeup out of the suspend state."
-	echo "For example, a USB mouse may wakeup if you wiggle it or click a button,"
-	echo "or a USB keyboard may wake up if you hit the CTRL key."
-	echo
-fi
 
-echo "Type enter once you are actively using the device:"
+echo -n "Type enter once you are actively using the device:"
 # 5 minute timeout.  FIXME: can they skip this step if they don't plan on
 # using the device?  I would rather they not, but if the USB device isn't
 # supported, they should at least have good power management with it.
@@ -283,7 +269,7 @@ fi
 
 # Ask user: does this device still work?  E.g. mouse moves on screen, it prints,
 # etc.  Record response.
-echo "Device successfully resumed.  Does this device still work? (y/n):"
+echo -n "Device successfully resumed.  Does this device still work? (y/n): "
 read -n 4 working
 echo ""
 if [ "$working" != 'y' -a  "$working" != 'Y' -a  "$working" != 'yes'  -a  "$working" != 'Yes' -a "$working" != 'YES' ]; then
