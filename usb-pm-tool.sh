@@ -60,7 +60,26 @@ else
 	echo
 fi
 
-# FIXME: check to make sure the script is running as root.
+USB_PM_TOOL_DIR="/etc/usb-pm-tool/"
+SAFE_DEVS_FILE=$USB_PM_TOOL_DIR"pm-enabled-devices.txt"
+UNSAFE_DEVS_FILE=$USB_PM_TOOL_DIR"pm-broken-devices.txt"
+
+if [ ! -d $USB_PM_TOOL_DIR ]; then
+	if ! mkdir $USB_PM_TOOL_DIR; then
+		echo "usb-pm-tool.sh must be run as root"
+		exit -1
+	fi
+	touch $SAFE_DEVS_FILE
+	chmod go= $SAFE_DEVS_FILE
+	touch $UNSAFE_DEVS_FILE
+	chmod go= $UNSAFE_DEVS_FILE
+else
+	if ! cat $SAFE_DEVS_FILE > /dev/null; then
+		echo "usb-pm-tool.sh must be run as root"
+		exit -1
+	fi
+fi
+
 
 # Find all USB devices on the system
 DEVS_FILE=/tmp/usb-pm-devices.txt
@@ -301,8 +320,28 @@ if [ "$working" != 'y' -a  "$working" != 'Y' -a  "$working" != 'yes'  -a  "$work
 	echo "Disabling auto-suspend for this device."
 	echo $OLD_WAIT > "$SYSFS_DIR/power/autosuspend"
 	echo "on" > "$SYSFS_DIR/power/level"
+	echo "Appending VID:PID $VID:$PID to $UNSAFE_DEVS_FILE"
+	# Avoid duplicate entries
+	if ! grep -q "$VID:$PID" $UNSAFE_DEVS_FILE; then
+		echo "$VID:$PID" >> $UNSAFE_DEVS_FILE
+	fi
 else
 	SUCCESS=1
+	echo "Would you like to enable auto-suspend for this device"
+	echo "whenever it is plugged in?  This will decrease system"
+	echo -n "power consumption. (y/n): "
+	read -n 4 rule
+	echo ""
+	if [ "$rule" == 'y' -o  "$rule" == 'Y' -o  "$rule" == 'yes'  -o  "$rule" == 'Yes' -o "$rule" == 'YES' ]; then
+		# Avoid duplicate entries
+		if ! grep -q "$VID:$PID" $SAFE_DEVS_FILE; then
+			echo "$VID:$PID" >> $SAFE_DEVS_FILE
+		fi
+		if ! ./vid-pid-to-udev-rule.sh $SAFE_DEVS_FILE; then
+			echo "WARNING: could not regenerate udev rules."
+			echo "Is vid-pid-to-udev-rule.sh in the current directory?"
+		fi
+	fi
 fi
 
 # Clean up the root hub's files we messed with
@@ -311,17 +350,6 @@ echo $OLD_PARENT_LEVEL > "$PARENT/power/level"
 
 # Ask user if they want to send an HTTP post report.  Tell them their IP address
 # will not be used to identify which USB devices they own.
-
-# If the device correctly auto-suspends, generate a udev rule to turn on
-# auto-suspend for that device whenever it gets added to the /dev tree.  Send
-# that via HTTP_POST too.
-
-if [ $SUCCESS -eq 1 ]; then
-	echo "Suggested udev rule:"
-	echo "SUBSYSTEMS==\"usb\", ATTR{idVendor}==\"$VID\", ATTR{idProduct}==\"$PID\", \\"
-	echo "	ATTR{power/level}=\"auto\""
-fi
-# TODO ask user if they want to add this rule to their udev rules.
 
 # Ask them to enter their email address if they wish to be contacted by Linux
 # kernel USB developers.
