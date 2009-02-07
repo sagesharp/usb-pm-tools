@@ -23,7 +23,7 @@
 #
 # Author: Sarah Sharp <sarah.a.sharp@linux.intel.com>
 
-OUTFILE=025_usb-autosuspend.rules
+OUTFILE="/etc/udev/rules.d/025_usb-autosuspend.rules"
 
 if [ $# -ne 1 ]; then
 	echo 'Usage `vid-pid-to-udev-rule [input file]`'
@@ -51,3 +51,5 @@ sed -r -e /1d6b:0001/d -e /1d6b:0002/d -e "s/([[:xdigit:]]{4}):([[:xdigit:]]{4})
 
 echo >> $OUTFILE
 echo 'LABEL="usb-autosuspend_rules_end"' >> $OUTFILE
+
+chmod go= $OUTFILE
