@@ -64,7 +64,7 @@ fi
 
 # Find all USB devices on the system
 DEVS_FILE=/tmp/usb-pm-devices.txt
-sudo lsusb | grep -v -e ".*ID 1d6b:000.*" -e ".*ID 0000:000.*" > $DEVS_FILE
+lsusb | grep -v -e ".*ID 1d6b:000.*" -e ".*ID 0000:000.*" > $DEVS_FILE
 
 # Do some processing on the file to filter USB devices.
 #
