@@ -198,10 +198,9 @@ echo
 
 sleep 2
 PARENT_TIME=$(cat "$PARENT/power/active_duration")
-TIME=$(cat "$SYSFS_DIR/power/active_duration")
 # Be paranoid at this point about files, because the device might break and the
 # files might go away.  FIXME this should probably be a function...
-if [ ! $? ]; then
+if ! TIME=$(cat "$SYSFS_DIR/power/active_duration"); then
 	echo "Device died?  Not enabling auto-suspend udev rule."
 	# Clean up
 	echo $OLD_PARENT_LEVEL > "$PARENT/power/level"
@@ -211,8 +210,7 @@ fi
 
 sleep 0.2
 PARENT_TIME2=$(cat "$PARENT/power/active_duration")
-TIME2=$(cat "$SYSFS_DIR/power/active_duration")
-if [ ! $? ]; then
+if ! TIME2=$(cat "$SYSFS_DIR/power/active_duration"); then
 	echo "Device died?  Not enabling auto-suspend udev rule."
 	# Clean up
 	echo $OLD_PARENT_LEVEL > "$PARENT/power/level"
@@ -259,10 +257,7 @@ echo
 # Figure out if the device is active now
 # FIXME: this is copy-paste code, make a function!
 PARENT_TIME=$(cat "$PARENT/power/active_duration")
-TIME=$(cat "$SYSFS_DIR/power/active_duration")
-# Be paranoid at this point about files, because the device might break and the
-# files might go away.  FIXME this should probably be a function...
-if [ ! $? ]; then
+if ! TIME=$(cat "$SYSFS_DIR/power/active_duration"); then
 	echo "Device died?  Not enabling auto-suspend udev rule."
 	# Clean up
 	echo $OLD_PARENT_LEVEL > "$PARENT/power/level"
@@ -272,8 +267,7 @@ fi
 # XXX: Not sure about this delta time value...
 sleep 0.2
 PARENT_TIME2=$(cat "$PARENT/power/active_duration")
-TIME2=$(cat "$SYSFS_DIR/power/active_duration")
-if [ ! $? ]; then
+if ! TIME2=$(cat "$SYSFS_DIR/power/active_duration"); then
 	echo "Device died?  Not enabling auto-suspend udev rule."
 	# Clean up
 	echo $OLD_PARENT_LEVEL > "$PARENT/power/level"
