@@ -264,6 +264,22 @@ echo "If you have a USB mouse or keyboard, you can hit a button to wakeup the de
 echo
 
 
+# Take the first sample before prompting the user to activate the device.
+# This way the user won't need to be actively using the device when they
+# press enter.  FIXME: this is copy-paste code, make a function!
+if ! URB_NUM1=$(cat "$SYSFS_DIR/urbnum"); then
+	echo "Device died?  Not enabling auto-suspend udev rule."
+	echo "Appending VID:PID $VID:$PID to $UNSAFE_DEVS_FILE"
+	# Avoid duplicate entries
+	if ! grep -q "$VID:$PID" $UNSAFE_DEVS_FILE; then
+		echo "$VID:$PID" >> $UNSAFE_DEVS_FILE
+	fi
+	# Clean up
+	echo $OLD_PARENT_LEVEL > "$PARENT/power/level"
+	# FIXME - offer to send a message that the device died?
+	exit 1
+fi
+
 echo -n "Type enter once you are actively using the device:"
 # 5 minute timeout.  FIXME: can they skip this step if they don't plan on
 # using the device?  I would rather they not, but if the USB device isn't
@@ -273,25 +289,7 @@ echo -n "Type enter once you are actively using the device:"
 read -n 1 -t 300
 echo
 
-# Figure out if the device is active now
-# FIXME: this is copy-paste code, make a function!
-PARENT_TIME=$(cat "$PARENT/power/active_duration")
-if ! TIME=$(cat "$SYSFS_DIR/power/active_duration"); then
-	echo "Device died?  Not enabling auto-suspend udev rule."
-	echo "Appending VID:PID $VID:$PID to $UNSAFE_DEVS_FILE"
-	# Avoid duplicate entries
-	if ! grep -q "$VID:$PID" $UNSAFE_DEVS_FILE; then
-		echo "$VID:$PID" >> $UNSAFE_DEVS_FILE
-	fi
-	# Clean up
-	echo $OLD_PARENT_LEVEL > "$PARENT/power/level"
-	# FIXME - offer to send a message that the device died?
-	exit 1
-fi
-# XXX: Not sure about this delta time value...
-sleep 0.2
-PARENT_TIME2=$(cat "$PARENT/power/active_duration")
-if ! TIME2=$(cat "$SYSFS_DIR/power/active_duration"); then
+if ! URB_NUM2=$(cat "$SYSFS_DIR/urbnum"); then
 	echo "Device died?  Not enabling auto-suspend udev rule."
 	echo "Appending VID:PID $VID:$PID to $UNSAFE_DEVS_FILE"
 	# Avoid duplicate entries
@@ -304,7 +302,7 @@ if ! TIME2=$(cat "$SYSFS_DIR/power/active_duration"); then
 	exit 1
 fi
 
-if [ $(($TIME2 - $TIME)) -le $((($PARENT_TIME2 - $PARENT_TIME) * 7 / 8)) ]; then
+if [ $URB_NUM1 -eq $URB_NUM2 ]; then
 	echo "Device still suspended, test inconclusive."
 	# Clean up
 	echo $OLD_WAIT > "$SYSFS_DIR/power/autosuspend"
