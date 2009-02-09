@@ -346,6 +346,8 @@ else
 	echo ""
 	if [ "$rule" == 'y' -o  "$rule" == 'Y' -o  "$rule" == 'yes'  -o  "$rule" == 'Yes' -o "$rule" == 'YES' ]; then
 		# Avoid duplicate entries
+		echo "Appending VID:PID $VID:$PID to $SAFE_DEVS_FILE"
+		echo
 		if ! grep -q "$VID:$PID" $SAFE_DEVS_FILE; then
 			echo "$VID:$PID" >> $SAFE_DEVS_FILE
 		fi
