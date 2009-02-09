@@ -278,6 +278,11 @@ echo
 PARENT_TIME=$(cat "$PARENT/power/active_duration")
 if ! TIME=$(cat "$SYSFS_DIR/power/active_duration"); then
 	echo "Device died?  Not enabling auto-suspend udev rule."
+	echo "Appending VID:PID $VID:$PID to $UNSAFE_DEVS_FILE"
+	# Avoid duplicate entries
+	if ! grep -q "$VID:$PID" $UNSAFE_DEVS_FILE; then
+		echo "$VID:$PID" >> $UNSAFE_DEVS_FILE
+	fi
 	# Clean up
 	echo $OLD_PARENT_LEVEL > "$PARENT/power/level"
 	# FIXME - offer to send a message that the device died?
@@ -288,6 +293,11 @@ sleep 0.2
 PARENT_TIME2=$(cat "$PARENT/power/active_duration")
 if ! TIME2=$(cat "$SYSFS_DIR/power/active_duration"); then
 	echo "Device died?  Not enabling auto-suspend udev rule."
+	echo "Appending VID:PID $VID:$PID to $UNSAFE_DEVS_FILE"
+	# Avoid duplicate entries
+	if ! grep -q "$VID:$PID" $UNSAFE_DEVS_FILE; then
+		echo "$VID:$PID" >> $UNSAFE_DEVS_FILE
+	fi
 	# Clean up
 	echo $OLD_PARENT_LEVEL > "$PARENT/power/level"
 	# FIXME - offer to send a message that the device died?
