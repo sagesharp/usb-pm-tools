@@ -52,4 +52,4 @@ sed -r -e /1d6b:0001/d -e /1d6b:0002/d -e "s/([[:xdigit:]]{4}):([[:xdigit:]]{4})
 echo >> $OUTFILE
 echo 'LABEL="usb-autosuspend_rules_end"' >> $OUTFILE
 
-chmod go= $OUTFILE
+chmod 644 $OUTFILE

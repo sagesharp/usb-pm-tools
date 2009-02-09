@@ -70,9 +70,9 @@ if [ ! -d $USB_PM_TOOL_DIR ]; then
 		exit -1
 	fi
 	touch $SAFE_DEVS_FILE
-	chmod go= $SAFE_DEVS_FILE
+	chmod 644 $SAFE_DEVS_FILE
 	touch $UNSAFE_DEVS_FILE
-	chmod go= $UNSAFE_DEVS_FILE
+	chmod 644 $UNSAFE_DEVS_FILE
 else
 	if ! cat $SAFE_DEVS_FILE > /dev/null; then
 		echo "usb-pm-tool.sh must be run as root"
