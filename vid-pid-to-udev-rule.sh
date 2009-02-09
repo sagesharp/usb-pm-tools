@@ -23,7 +23,8 @@
 #
 # Author: Sarah Sharp <sarah.a.sharp@linux.intel.com>
 
-OUTFILE="/etc/udev/rules.d/025_usb-autosuspend.rules"
+OUTFILE="/etc/udev/usb-autosuspend.rules"
+UDEV_RULE="/etc/udev/rules.d/025_usb-autosuspend.rules"
 
 if [ $# -ne 1 ]; then
 	echo 'Usage `vid-pid-to-udev-rule [input file]`'
@@ -56,3 +57,8 @@ echo >> $OUTFILE
 echo 'LABEL="usb-autosuspend_rules_end"' >> $OUTFILE
 
 chmod 644 $OUTFILE
+
+echo
+echo "Symlinking $UDEV_RULE"
+echo "to $OUTFILE"
+ln -s $OUTFILE $UDEV_RULE
