@@ -327,9 +327,13 @@ if [ "$working" != 'y' -a  "$working" != 'Y' -a  "$working" != 'yes'  -a  "$work
 	fi
 else
 	SUCCESS=1
-	echo "Would you like to enable auto-suspend for this device"
-	echo "whenever it is plugged in?  This will decrease system"
-	echo -n "power consumption. (y/n): "
+	echo "You can enable auto-suspend for this device whenever it is"
+	echo "plugged into the system.  This step will append the device's"
+	echo "vendor and product ID to $SAFE_DEVS_FILE"
+	echo "and regenerate udev rules in /etc/udev/rules.d/025_usb-autosuspend.rules."
+	echo
+	echo "Do you want to always enable auto-suspend for this device?"
+	echo -n "This will decrease system power consumption.  (y/n): "
 	read -n 4 rule
 	echo ""
 	if [ "$rule" == 'y' -o  "$rule" == 'Y' -o  "$rule" == 'yes'  -o  "$rule" == 'Yes' -o "$rule" == 'YES' ]; then
