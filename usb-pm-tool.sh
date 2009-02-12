@@ -109,6 +109,8 @@ cat $DEVS_FILE | nl
 echo
 echo -n "Which USB device would you like to test (0 cancels test): "
 # Can't have more than 255 devices plugged in anyway...
+# FIXME remove all read -n calls so people can use backspace
+# FIXME this fails badly if you type something other than a number
 read -n 3 devnum
 echo ""
 MAX_DEVNUM=`cat $DEVS_FILE | wc -l`
@@ -339,6 +341,7 @@ else
 	echo "plugged into the system.  This step will append the device's"
 	echo "vendor and product ID to $SAFE_DEVS_FILE"
 	echo "and regenerate udev rules in /etc/udev/rules.d/025_usb-autosuspend.rules."
+	# FIXME Josh wants to see the rule that would be added
 	echo
 	echo "Do you want to always enable auto-suspend for this device?"
 	echo -n "This will decrease system power consumption.  (y/n): "
