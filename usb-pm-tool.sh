@@ -189,7 +189,7 @@ do
 	fi
 done
 
-if [ $SUPPORTED == 0 ]; then
+if [ "$SUPPORTED" -eq "0" ]; then
 	exit 1
 fi
 
@@ -350,7 +350,7 @@ else
 	echo -n "This will decrease system power consumption.  (y/n): "
 	read rule
 	echo ""
-	if [ "$rule" == 'y' -o  "$rule" == 'Y' -o  "$rule" == 'yes'  -o  "$rule" == 'Yes' -o "$rule" == 'YES' ]; then
+	if [ "$rule" = 'y' -o  "$rule" = 'Y' -o  "$rule" = 'yes'  -o  "$rule" = 'Yes' -o "$rule" = 'YES' ]; then
 		# Avoid duplicate entries
 		echo "Appending VID:PID $VID:$PID to $SAFE_DEVS_FILE"
 		echo
