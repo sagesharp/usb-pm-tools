@@ -109,9 +109,8 @@ cat $DEVS_FILE | nl
 echo
 echo -n "Which USB device would you like to test (0 cancels test): "
 # Can't have more than 255 devices plugged in anyway...
-# FIXME remove all read -n calls so people can use backspace
 # FIXME this fails badly if you type something other than a number
-read -n 3 devnum
+read devnum
 echo ""
 MAX_DEVNUM=`cat $DEVS_FILE | wc -l`
 if [ "$devnum" -eq "0" ]; then
@@ -148,7 +147,7 @@ if echo $DRIVERS | grep -q -e ".*usb-storage.*" -e ".*ub.*" - ; then
 	echo "You may want to backup your files before proceeding."
 	echo
 	echo -n "Do you wish to test this device? (y/n): "
-	read -n 4 go
+	read go
 	echo ""
 	if [ "$go" != 'y' -a  "$go" != 'Y' -a  "$go" != 'yes'  -a  "$go" != 'Yes' -a "$go" != 'YES' ]; then
 		echo "Please try with a different device.  Thanks!"
@@ -288,7 +287,7 @@ echo -n "Type enter once you are actively using the device:"
 # supported, they should at least have good power management with it.
 # Maybe offer to skip this step if there isn't a driver loaded for the device?
 # Oh, wait, what about libusb userspace programs?
-read -n 1 -t 300
+read ignored
 echo
 
 if ! URB_NUM2=$(cat "$SYSFS_DIR/urbnum"); then
@@ -317,12 +316,12 @@ fi
 # Ask user: does this device still work?  E.g. mouse moves on screen, it prints,
 # etc.  Record response.
 echo -n "Device successfully resumed.  Does this device still work? (y/n): "
-read -n 4 working
+read working
 echo ""
 if [ "$working" != 'y' -a  "$working" != 'Y' -a  "$working" != 'yes'  -a  "$working" != 'Yes' -a "$working" != 'YES' ]; then
 	SUCCESS=0
 	echo "What was wrong with the device: "
-	read -n 500 -t 300 notes
+	read notes
 	echo ""
 	# FIXME make a bug report - might be something to do with the driver?
 	# If the device didn't suspend properly, clean up the device pm files
@@ -345,7 +344,7 @@ else
 	echo
 	echo "Do you want to always enable auto-suspend for this device?"
 	echo -n "This will decrease system power consumption.  (y/n): "
-	read -n 4 rule
+	read rule
 	echo ""
 	if [ "$rule" == 'y' -o  "$rule" == 'Y' -o  "$rule" == 'yes'  -o  "$rule" == 'Yes' -o "$rule" == 'YES' ]; then
 		# Avoid duplicate entries
