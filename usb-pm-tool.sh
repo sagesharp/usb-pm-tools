@@ -109,10 +109,14 @@ cat $DEVS_FILE | nl
 echo
 echo -n "Which USB device would you like to test (0 cancels test): "
 # Can't have more than 255 devices plugged in anyway...
-# FIXME this fails badly if you type something other than a number
 read devnum
 echo ""
 MAX_DEVNUM=`cat $DEVS_FILE | wc -l`
+# Did they type a valid number?
+if ! test "$devnum" -gt "0" -o "$devnum" -lt "$MAX_DEVNUM"; then
+	echo "Invalid choice."
+	exit 0
+fi
 if [ "$devnum" -eq "0" ]; then
 	exit 0
 fi
