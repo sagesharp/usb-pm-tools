@@ -85,6 +85,58 @@ fi
 DEVS_FILE=`mktemp -t usb-pm-devices-XXXXXXXXXX`
 lsusb | grep -v -e ".*ID 1d6b:000.*" -e ".*ID 0000:000.*" > $DEVS_FILE
 
+get_dev_info ()
+{
+	VID=`echo $TEST_DEV | sed -r -e "s/.*([[:xdigit:]]{4}):([[:xdigit:]]{4}).*/\1/"`
+	PID=`echo $TEST_DEV | sed -r -e "s/.*([[:xdigit:]]{4}):([[:xdigit:]]{4}).*/\2/"`
+	# Finally we map the VID:PID to the sysfs file that represents that device
+	# Only take the first VID:PID match
+	SYSFS_DIR=`find -L /sys/bus/usb/devices -maxdepth 1 -type d -exec grep -s -q $VID {}/idVendor \; -exec grep -s -q $PID {}/idProduct \; -print | head -n 1`
+	DEVNUM=`cat "$SYSFS_DIR"/devnum`
+	BUSNUM=`cat "$SYSFS_DIR"/busnum`
+}
+
+# Sort devices into devices where all drivers support auto-suspend and
+# those that have one or more drivers that don't support auto-suspend.
+NO_PM_DEVS_FILE=`mktemp -t no-pm-devices-XXXXXXXXXX`
+PM_DEVS_FILE=`mktemp -t pm-devices-XXXXXXXXXX`
+while read line
+do 
+	TEST_DEV=$line
+	get_dev_info
+	# Do all the interface drivers support autosuspend?
+	SUPPORTED=1
+	NO_PM_DRIVERS=""
+	for f in `find "$SYSFS_DIR/" -name '[0-9]*-[0-9]*:*'`;
+	do
+		if [ ! -e "$f/supports_autosuspend" ]; then
+			break
+		fi
+
+		if [ -e "$f/driver" ]; then
+			READLINK=`readlink "$f/driver"`
+			DRIVER=`basename "$READLINK"`
+		else
+			DRIVER=""
+		fi
+
+		if [ `cat "$f/supports_autosuspend"` = 0 ]; then
+			# unclaimed interfaces will have supports_autosuspend set to 1
+			NO_PM_DRIVERS="$DRIVER $NO_PM_DRIVERS"
+			SUPPORTED=0
+		fi
+	done
+
+	if [ "$SUPPORTED" -eq "1" ]; then
+		echo $line >> $PM_DEVS_FILE
+	else
+		echo "     $line" >> $NO_PM_DEVS_FILE
+		echo -n "           drivers without auto-suspend support:  " >> $NO_PM_DEVS_FILE
+		echo "$NO_PM_DRIVERS" >> $NO_PM_DEVS_FILE
+	fi
+done < $DEVS_FILE
+echo
+
 # Do some processing on the file to filter USB devices.
 #
 # Sort into devices that do support autosuspend versus those that don't.
@@ -105,13 +157,21 @@ lsusb | grep -v -e ".*ID 1d6b:000.*" -e ".*ID 0000:000.*" > $DEVS_FILE
 #     1  enabled          vid:pid device baz
 #     2  disabled         vid:pid device baz
 
-cat $DEVS_FILE | nl
+if [ "`wc -l $NO_PM_DEVS_FILE`" != "0 $NO_PM_DEVS_FILE" ]; then
+	echo "You will not be able to test these devices on your system:"
+	cat $NO_PM_DEVS_FILE
+	echo
+	echo
+fi
+
+echo "These devices support auto-suspend and can be tested:"
+cat $PM_DEVS_FILE | nl
 echo
-echo -n "Which USB device would you like to test (0 cancels test): "
+echo -n "Which USB device would you like to test? (0 cancels test): "
 # Can't have more than 255 devices plugged in anyway...
 read devnum
 echo ""
-MAX_DEVNUM=`cat $DEVS_FILE | wc -l`
+MAX_DEVNUM=`cat $PM_DEVS_FILE | wc -l`
 # Did they type a valid number?
 if ! test "$devnum" -gt "0" -o "$devnum" -lt "$MAX_DEVNUM"; then
 	echo "Invalid choice."
@@ -124,16 +184,9 @@ if [ "$devnum" -gt "$MAX_DEVNUM" ]; then
 	echo "Device $devnum does not exist"
 	exit 0
 fi
-# Now to map the user's selection to a device's VID/PID
-TEST_DEV=`head -n $devnum $DEVS_FILE | tail -n 1`
-VID=`echo $TEST_DEV | sed -r -e "s/.*([[:xdigit:]]{4}):([[:xdigit:]]{4}).*/\1/"`
-PID=`echo $TEST_DEV | sed -r -e "s/.*([[:xdigit:]]{4}):([[:xdigit:]]{4}).*/\2/"`
 
-# Finally we map the VID:PID to the sysfs file that represents that device
-# Only take the first VID:PID match
-SYSFS_DIR=`find -L /sys/bus/usb/devices -maxdepth 1 -type d -exec grep -s -q $VID {}/idVendor \; -exec grep -s -q $PID {}/idProduct \; -print | head -n 1`
-DEVNUM=`cat "$SYSFS_DIR"/devnum`
-BUSNUM=`cat "$SYSFS_DIR"/busnum`
+TEST_DEV=`head -n $devnum $PM_DEVS_FILE | tail -n 1`
+get_dev_info
 
 # Does the user have CONFIG_USB_PM enabled?  I.e. is the power directory and
 # level file there?  Suggest they also have CONFIG_USB_DEBUG turned on.
@@ -157,40 +210,6 @@ if echo $DRIVERS | grep -q -e ".*usb-storage.*" -e ".*ub.*" - ; then
 		echo "Please try with a different device.  Thanks!"
 		exit 0
 	fi
-fi
-
-# Do all the interface drivers support autosuspend?
-# If not, there's no point in continuing the test.
-SUPPORTED=1
-for f in `find "$SYSFS_DIR/" -name '[0-9]*-[0-9]*:*'`;
-do
-	if [ ! -e "$f/supports_autosuspend" ]; then
-		break
-	fi
-
-	if [ -e "$f/driver" ]; then
-		READLINK=`readlink "$f/driver"`
-		DRIVER=`basename "$READLINK"`
-	else
-		DRIVER=""
-	fi
-
-	if [ `cat "$f/supports_autosuspend"` = 0 ]; then
-		# unclaimed interfaces will have supports_autosuspend set to 1
-		echo "$DRIVER driver for interface `cat $f/bInterfaceNumber` does not support autosuspend."
-		echo "Autosuspend can only be tested when all interface drivers support autosuspend."
-		SUPPORTED=0
-	else
-		if [ "$DRIVER" = "" ]; then
-			echo "Interface `cat $f/bInterfaceNumber` is unclaimed"
-		else
-			echo "$DRIVER driver for interface `cat $f/bInterfaceNumber` supports autosuspend."
-		fi
-	fi
-done
-
-if [ "$SUPPORTED" -eq "0" ]; then
-	exit 1
 fi
 
 # For cleanup later
