@@ -48,6 +48,11 @@ cleanup ()
 		# Avoid duplicate entries
 		if ! grep -q "$VID:$PID" $UNSAFE_DEVS_FILE; then
 			echo "$VID:$PID" >> $UNSAFE_DEVS_FILE
+			if [ "$notes" != "" ]; then
+				echo "Notes:  $notes" >> $UNSAFE_DEVS_FILE
+			else
+				echo "Notes:  Device disconnected during test." >> $UNSAFE_DEVS_FILE
+			fi
 		fi
 		# FIXME make a bug report - might be something to do with the driver?
 	fi
