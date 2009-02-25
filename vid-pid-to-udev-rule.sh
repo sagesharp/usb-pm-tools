@@ -61,5 +61,7 @@ chmod 644 $OUTFILE
 echo
 echo "Symlinking $UDEV_RULE"
 echo "to $OUTFILE"
-rm $UDEV_RULE
+if [ -e $UDEV_RULE ]; then
+	rm $UDEV_RULE
+fi
 ln -s $OUTFILE $UDEV_RULE
