@@ -137,6 +137,14 @@ get_dev_info ()
 	DEVNUM=`cat "$SYSFS_DIR"/devnum`
 	BUSNUM=`cat "$SYSFS_DIR"/busnum`
 }
+clear_dev_info ()
+{
+	SYSFS_DIR=""
+	BUSNUM=""
+	DEVNUM=""
+	PID=""
+	VID=""
+}
 
 # Sort devices into devices where all drivers support auto-suspend and
 # those that have one or more drivers that don't support auto-suspend.
@@ -151,6 +159,17 @@ do
 	NO_PM_DRIVERS=""
 	for f in `find "$SYSFS_DIR/" -name '[0-9]*-[0-9]*:*'`;
 	do
+		if [ ! -d "$f/power" ]; then
+			echo "This test cannot run without Linux kernel support for selective suspend."
+			echo "Please enable CONFIG_USB_SUSPEND and recompile your kernel."
+			clear_dev_info
+			exit -1
+		fi
+		if [ ! -d "$f/power/active_duration" ]; then
+			echo "This test will only run on Linux kernel version 2.6.25 or greater."
+			clear_dev_info
+			exit -1
+		fi
 		if [ ! -e "$f/supports_autosuspend" ]; then
 			break
 		fi
@@ -177,6 +196,7 @@ do
 		echo "$NO_PM_DRIVERS" >> $NO_PM_DEVS_FILE
 	fi
 done < $DEVS_FILE
+clear_dev_info
 echo
 
 # Do some processing on the file to filter USB devices.
