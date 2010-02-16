@@ -51,7 +51,10 @@ echo >> $OUTFILE
 # 	/sys/bus/usb/devices/<device>/power/level to auto
 # It is "on" by default for all peripherial (non-hub) devices.
 
-sed -r -e /1d6b:0001/d -e /1d6b:0002/d -e "s/([[:xdigit:]]{4}):([[:xdigit:]]{4})/ATTR{idVendor}==\"\1\", ATTR{idProduct}==\"\2\", ATTR{power\/level}=\"auto\"/" $1 >> $OUTFILE
+# If there is a number after the VID:PID, assume it's the number of seconds of
+# idleness before the USB core suspends the device (default is 2, 0 means
+# suspend immediately).
+sed -r -e /1d6b:0001/d -e /1d6b:0002/d -e "s/([[:xdigit:]]{4}):([[:xdigit:]]{4})$/ATTR{idVendor}==\"\1\", ATTR{idProduct}==\"\2\", ATTR{power\/level}=\"auto\"/" -e "s/([[:xdigit:]]{4}):([[:xdigit:]]{4}) ([[:xdigit:]])/ATTR{idVendor}==\"\1\", ATTR{idProduct}==\"\2\", ATTR{power\/level}=\"auto\", ATTR{power\/autosuspend}=\"\3\"/" $1 >> $OUTFILE
 
 echo >> $OUTFILE
 echo 'LABEL="usb-autosuspend_rules_end"' >> $OUTFILE
@@ -65,3 +68,4 @@ if [ -e $UDEV_RULE ]; then
 	rm $UDEV_RULE
 fi
 ln -s $OUTFILE $UDEV_RULE
+/etc/init.d/udev restart
