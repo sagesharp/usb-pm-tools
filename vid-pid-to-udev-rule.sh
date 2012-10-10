@@ -23,8 +23,7 @@
 #
 # Author: Sarah Sharp <sarah.a.sharp@linux.intel.com>
 
-OUTFILE="/etc/udev/usb-autosuspend.rules"
-UDEV_RULE="/etc/udev/rules.d/025_usb-autosuspend.rules"
+OUTFILE="/etc/udev/rules.d/90-usb-autosuspend.rules"
 
 if [ $# -ne 1 ]; then
 	echo 'Usage `vid-pid-to-udev-rule [input file]`'
@@ -33,6 +32,10 @@ fi
 
 # Specify that this udev rule should only run for USB devices,
 # and only when the USB device is first connected (i.e. added).
+
+if [ -e $OUTFILE ]; then
+	rm $OUTFILE
+fi
 
 echo "Regenerating udev rule file $OUTFILE"
 echo "from PID:VID list in $1"
@@ -64,8 +67,4 @@ chmod 644 $OUTFILE
 echo
 echo "Symlinking $UDEV_RULE"
 echo "to $OUTFILE"
-if [ -e $UDEV_RULE ]; then
-	rm $UDEV_RULE
-fi
 ln -s $OUTFILE $UDEV_RULE
-/etc/init.d/udev restart
