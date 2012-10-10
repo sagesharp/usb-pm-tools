@@ -51,13 +51,13 @@ echo >> $OUTFILE
 # The VID:PID for root hubs is 1d6b:0001 for USB 1.1 hubs
 # 1d6b:0002 for USB 2.0 hubs, and 1d6b:0003 for USB 3.0 hubs.
 # Turn on autosuspend by setting
-# 	/sys/bus/usb/devices/<device>/power/level to auto
+# 	/sys/bus/usb/devices/<device>/power/control to auto
 # It is "on" by default for all peripherial (non-hub) devices.
 
-# If there is a number after the VID:PID, assume it's the number of seconds of
-# idleness before the USB core suspends the device (default is 2, 0 means
+# If there is a number after the VID:PID, assume it's the number of microseconds of
+# idleness before the USB core suspends the device (default is 2000, 0 means
 # suspend immediately).
-sed -r -e '/1d6b:000[1-3]/d' -e "s/([[:xdigit:]]{4}):([[:xdigit:]]{4})$/ATTR{idVendor}==\"\1\", ATTR{idProduct}==\"\2\", ATTR{power\/level}=\"auto\"/" -e "s/([[:xdigit:]]{4}):([[:xdigit:]]{4}) ([[:xdigit:]])/ATTR{idVendor}==\"\1\", ATTR{idProduct}==\"\2\", ATTR{power\/level}=\"auto\", ATTR{power\/autosuspend}=\"\3\"/" $1 >> $OUTFILE
+sed -r -e '/1d6b:000[1-3]/d' -e "s/([[:xdigit:]]{4}):([[:xdigit:]]{4})$/ATTR{idVendor}==\"\1\", ATTR{idProduct}==\"\2\", ATTR{power\/control}=\"auto\"/" -e "s/([[:xdigit:]]{4}):([[:xdigit:]]{4}) ([[:xdigit:]])/ATTR{idVendor}==\"\1\", ATTR{idProduct}==\"\2\", ATTR{power\/control}=\"auto\", ATTR{power\/autosuspend_delay_ms}=\"\3\"/" $1 >> $OUTFILE
 
 echo >> $OUTFILE
 echo 'LABEL="usb-autosuspend_rules_end"' >> $OUTFILE
