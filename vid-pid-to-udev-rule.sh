@@ -46,7 +46,7 @@ echo >> $OUTFILE
 
 # Ignore root hubs, since all hubs have autosuspend enabled by default.
 # The VID:PID for root hubs is 1d6b:0001 for USB 1.1 hubs
-# and 1d6b:0002 for USB 2.0 hubs.
+# 1d6b:0002 for USB 2.0 hubs, and 1d6b:0003 for USB 3.0 hubs.
 # Turn on autosuspend by setting
 # 	/sys/bus/usb/devices/<device>/power/level to auto
 # It is "on" by default for all peripherial (non-hub) devices.
