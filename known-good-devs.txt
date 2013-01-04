@@ -18,3 +18,4 @@
 # like USB mass storage devices, since userspace polls them for media
 # changes every second or so.
 
+04f2:b2ea		# Chicony Electronics Co., Ltd Integrated Camera [ThinkPad]
