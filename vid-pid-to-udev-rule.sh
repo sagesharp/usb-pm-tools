@@ -63,8 +63,3 @@ echo >> $OUTFILE
 echo 'LABEL="usb-autosuspend_rules_end"' >> $OUTFILE
 
 chmod 644 $OUTFILE
-
-echo
-echo "Symlinking $UDEV_RULE"
-echo "to $OUTFILE"
-ln -s $OUTFILE $UDEV_RULE
