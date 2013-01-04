@@ -57,7 +57,11 @@ echo >> $OUTFILE
 # If there is a number after the VID:PID, assume it's the number of microseconds of
 # idleness before the USB core suspends the device (default is 2000, 0 means
 # suspend immediately).
-sed -n -r -e '/1d6b:000[1-3]/d' -e "s/([[:xdigit:]]{4}):([[:xdigit:]]{4})$/ATTR{idVendor}==\"\1\", ATTR{idProduct}==\"\2\", ATTR{power\/control}=\"auto\"/p" -e "s/([[:xdigit:]]{4}):([[:xdigit:]]{4})[[:blank:]]*([[:xdigit:]]*)/ATTR{idVendor}==\"\1\", ATTR{idProduct}==\"\2\", ATTR{power\/control}=\"auto\", ATTR{power\/autosuspend_delay_ms}=\"\3\"/p" $1 >> $OUTFILE
+sed -n -r \
+	-e '/1d6b:000[1-3]/d' \
+	-e "s/([[:xdigit:]]{4}):([[:xdigit:]]{4})$/ATTR{idVendor}==\"\1\", ATTR{idProduct}==\"\2\", ATTR{power\/control}=\"auto\"/p" \
+	-e "s/([[:xdigit:]]{4}):([[:xdigit:]]{4})[[:blank:]]*([[:xdigit:]]*)/ATTR{idVendor}==\"\1\", ATTR{idProduct}==\"\2\", ATTR{power\/control}=\"auto\", ATTR{power\/autosuspend_delay_ms}=\"\3\"/p" \
+	$1 >> $OUTFILE
 
 echo >> $OUTFILE
 echo 'LABEL="usb-autosuspend_rules_end"' >> $OUTFILE
