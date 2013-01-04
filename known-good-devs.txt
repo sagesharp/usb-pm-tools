@@ -1,8 +1,20 @@
-0483:2016
-04f2:b071
-064e:d101
-0c45:62c0
-046d:c063
-0d62:2106
-05e3:0505
-0b05:b700
+# List of USB devices known to properly handle auto-suspend.
+#
+# Keep these in order of vendor ID, then product ID (VID:PID).
+#
+# Also add a comment with the manufacturer and name of this USB device.
+#
+# Syntax:
+# VID:PID
+# VID:PID [auto-suspend delay in milliseconds]
+#
+# The first line enables auto-suspend for the USB device with the given
+# vendor ID (VID) and product ID (PID).  This will keep the delay
+# between device activity and suspend at the default (2 seconds).
+#
+# The second line also enables auto-suspend for the USB device, but it
+# sets the delay between device activity and suspend to the specified
+# value.  Users may want to decrease the auto-suspend delay for devices
+# like USB mass storage devices, since userspace polls them for media
+# changes every second or so.
+
