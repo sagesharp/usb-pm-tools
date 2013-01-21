@@ -1,0 +1,14 @@
+This git repository contains scripts and lists of USB devices that help users
+improve USB power management on their Linux systems.  It contains:
+
+ - vid-pid-to-udev-rule.sh: A bash script to generate udev rules to
+   automatically turn on USB power management (auto-suspend) when a USB device
+   is plugged into the system.  This uses the USB device's Vendor ID (VID) and
+   Product ID (PID).
+
+ - known-good-devs.txt: A list of USB devices by VID/PID that have been tested
+   and are known to support auto-suspend.
+
+ - usb-pm-tool.sh: A very old and clunky bash script that attempts to guide
+   users through testing their USB devices to see if they support power
+   management (auto-suspend).  Don't use this, just use powertop.
